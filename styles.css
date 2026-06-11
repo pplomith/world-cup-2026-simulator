@@ -163,6 +163,43 @@ button {
   letter-spacing: 0.1em;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.language-toggle {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(216, 255, 56, 0.28);
+  border-radius: 999px;
+  color: var(--lime);
+  background: rgba(216, 255, 56, 0.06);
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.language-toggle:hover,
+.language-toggle:focus-visible {
+  border-color: var(--lime);
+  background: rgba(216, 255, 56, 0.13);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.language-icon {
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
 .live-dot {
   width: 8px;
   height: 8px;
@@ -242,6 +279,10 @@ main {
   background-clip: text;
 }
 
+.hero-title-top {
+  color: var(--white);
+}
+
 .hero-copy > p {
   max-width: 670px;
   margin: 0;
@@ -311,6 +352,13 @@ main {
 .simulate-button span:last-child {
   display: block;
   text-align: left;
+  font-size: 1.05rem;
+  font-weight: 1000;
+  letter-spacing: 0.02em;
+}
+
+.simulate-button strong {
+  display: block;
   font-size: 1.05rem;
   font-weight: 1000;
   letter-spacing: 0.02em;
@@ -2240,6 +2288,15 @@ footer p {
 
   .model-live span:last-child {
     display: none;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .language-toggle {
+    min-height: 34px;
+    padding: 6px 10px;
   }
 
   .hero {

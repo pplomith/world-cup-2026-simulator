@@ -6,9 +6,10 @@
     <meta
       name="description"
       content="Simulatore AI del Mondiale FIFA 2026 basato su 100.000 simulazioni Monte Carlo."
+      data-i18n-content="meta.description"
     />
     <title>World Cup 26 | Scenario Engine</title>
-    <link rel="stylesheet" href="./styles.css?v=1" />
+    <link rel="stylesheet" href="./styles.css?v=3" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -26,15 +27,21 @@
           <small>SCENARIO ENGINE</small>
         </span>
       </a>
-      <nav class="nav-links" aria-label="Navigazione principale">
-        <button class="nav-link active" data-scroll="overview">Overview</button>
-        <button class="nav-link" data-scroll="probabilities">Probabilità</button>
-        <button class="nav-link" data-scroll="groups">Groups</button>
-        <button class="nav-link" data-scroll="bracket">Bracket</button>
+      <nav class="nav-links" aria-label="Navigazione principale" data-i18n-aria-label="nav.aria">
+        <button class="nav-link active" data-scroll="overview" data-i18n="nav.overview">Overview</button>
+        <button class="nav-link" data-scroll="probabilities" data-i18n="nav.probabilities">Probabilità</button>
+        <button class="nav-link" data-scroll="groups" data-i18n="nav.groups">Gironi</button>
+        <button class="nav-link" data-scroll="bracket" data-i18n="nav.bracket">Tabellone</button>
       </nav>
-      <div class="model-live">
-        <span class="live-dot"></span>
-        <span>MODEL LIVE</span>
+      <div class="topbar-actions">
+        <button class="language-toggle" id="languageToggle" type="button" aria-label="Passa alla lingua inglese">
+          <span class="language-icon" aria-hidden="true">文</span>
+          <span id="languageToggleLabel">EN</span>
+        </button>
+        <div class="model-live">
+          <span class="live-dot"></span>
+          <span data-i18n="nav.modelLive">MODELLO ATTIVO</span>
+        </div>
       </div>
     </header>
 
@@ -45,10 +52,10 @@
             <span>CANADA</span><i></i><span>MEXICO</span><i></i><span>USA</span>
           </div>
           <h1>
-            UNA COPPA,<br />
-            <span>INFINITE STORIE.</span>
+            <strong class="hero-title-top" data-i18n="hero.titleTop">UNA COPPA,</strong><br />
+            <span data-i18n="hero.titleBottom">INFINITE STORIE.</span>
           </h1>
-          <p>
+          <p data-i18n="hero.description">
             Una simulazione completa del Mondiale 2026, guidata dal modello
             calibrato e dal prior di 100.000 tornei Monte Carlo. Ogni click crea
             una nuova possibile storia.
@@ -57,18 +64,18 @@
             <button class="simulate-button" id="simulateButton">
               <span class="button-icon">▶</span>
               <span>
-                <small>GENERA UN NUOVO TORNEO</small>
-                SIMULA ORA
+                <small data-i18n="hero.buttonSmall">GENERA UN NUOVO TORNEO</small>
+                <strong data-i18n="hero.button">SIMULA ORA</strong>
               </span>
             </button>
             <label class="seed-control">
-              <span>SEED OPZIONALE</span>
-              <input id="seedInput" type="number" inputmode="numeric" placeholder="Random" />
+              <span data-i18n="hero.seed">SEED OPZIONALE</span>
+              <input id="seedInput" type="number" inputmode="numeric" placeholder="Casuale" data-i18n-placeholder="hero.seedPlaceholder" />
             </label>
           </div>
           <div class="hero-meta" id="heroMeta">
-            <div><strong>48</strong><span>SQUADRE</span></div>
-            <div><strong>104</strong><span>PARTITE</span></div>
+            <div><strong>48</strong><span data-i18n="hero.teams">SQUADRE</span></div>
+            <div><strong>104</strong><span data-i18n="hero.matches">PARTITE</span></div>
             <div><strong>100K</strong><span>MONTE CARLO</span></div>
           </div>
         </div>
@@ -107,8 +114,8 @@
 
       <section class="dashboard-strip">
         <div class="strip-copy">
-          <span class="section-kicker">MODEL OUTLOOK</span>
-          <h2>Le favorite prima del calcio d'inizio</h2>
+          <span class="section-kicker" data-i18n="favorites.kicker">PANORAMICA MODELLO</span>
+          <h2 data-i18n="favorites.title">Le favorite prima del calcio d'inizio</h2>
         </div>
         <div class="favorites-track" id="favoritesTrack">
           <div class="skeleton favorite-skeleton"></div>
@@ -120,33 +127,33 @@
       <section class="probabilities-section" id="probabilities">
         <div class="section-heading probabilities-heading">
           <div>
-            <span class="section-kicker">PRE-TOURNAMENT OUTLOOK</span>
-            <h2>Le percentuali di tutte le squadre</h2>
-            <p>
+            <span class="section-kicker" data-i18n="probabilities.kicker">PRIMA DEL TORNEO</span>
+            <h2 data-i18n="probabilities.title">Le percentuali di tutte le squadre</h2>
+            <p data-i18n="probabilities.description">
               Probabilità calcolate sulle 100.000 simulazioni prima del calcio
               d'inizio. I valori indicano la possibilità di raggiungere ogni turno.
             </p>
           </div>
           <div class="probability-controls">
             <label>
-              <span>CERCA SQUADRA</span>
-              <input id="teamSearch" type="search" placeholder="Es. Spagna, Argentina..." />
+              <span data-i18n="probabilities.search">CERCA SQUADRA</span>
+              <input id="teamSearch" type="search" placeholder="Es. Spagna, Argentina..." data-i18n-placeholder="probabilities.searchPlaceholder" />
             </label>
             <label>
-              <span>GIRONE</span>
+              <span data-i18n="probabilities.group">GIRONE</span>
               <select id="groupFilter">
                 <option value="">Tutti i gironi</option>
               </select>
             </label>
           </div>
         </div>
-        <div class="group-quick-filters" id="groupQuickFilters" aria-label="Filtra per girone"></div>
+        <div class="group-quick-filters" id="groupQuickFilters" aria-label="Filtra per girone" data-i18n-aria-label="probabilities.groupFilterAria"></div>
         <div class="probability-table-shell">
           <table class="probability-table">
             <thead id="probabilityTableHead"></thead>
             <tbody id="probabilityTableBody">
               <tr class="probability-loading">
-                <td colspan="8">Caricamento delle probabilità Monte Carlo...</td>
+                <td colspan="8" data-i18n="probabilities.loading">Caricamento delle probabilità Monte Carlo...</td>
               </tr>
             </tbody>
           </table>
@@ -157,9 +164,9 @@
       <section class="simulation-empty" id="emptyState">
         <span class="empty-number">01</span>
         <div>
-          <span class="section-kicker">READY FOR KICK-OFF</span>
-          <h2>Il tabellone aspetta la sua storia.</h2>
-          <p>
+          <span class="section-kicker" data-i18n="empty.kicker">PRONTI AL CALCIO D'INIZIO</span>
+          <h2 data-i18n="empty.title">Il tabellone aspetta la sua storia.</h2>
+          <p data-i18n="empty.description">
             Premi “Simula ora” per giocare tutte le 104 partite, definire le
             migliori terze e attraversare il bracket ufficiale fino alla finale.
           </p>
@@ -169,11 +176,11 @@
       <div class="simulation-content hidden" id="simulationContent">
         <section class="story-header">
           <div>
-            <span class="section-kicker">SIMULATION COMPLETE</span>
-            <h2 id="storyTitle">Una nuova storia è stata scritta.</h2>
+            <span class="section-kicker" data-i18n="story.kicker">SIMULAZIONE COMPLETATA</span>
+            <h2 id="storyTitle" data-i18n="story.title">Una nuova storia è stata scritta.</h2>
           </div>
           <div class="story-id">
-            <span>SCENARIO ID</span>
+            <span data-i18n="story.scenario">ID SCENARIO</span>
             <strong id="scenarioSeed">-</strong>
           </div>
         </section>
@@ -181,10 +188,10 @@
         <section class="champion-stage" id="championStage">
           <div class="champion-rays"></div>
           <div class="champion-copy">
-            <span class="champion-label">WORLD CHAMPIONS 2026</span>
+            <span class="champion-label" data-i18n="champion.label">CAMPIONI DEL MONDO 2026</span>
             <div class="champion-flag" id="championFlag"></div>
             <h2 id="championName">-</h2>
-            <p id="championRoute">Una strada verso la gloria.</p>
+            <p id="championRoute" data-i18n="champion.defaultRoute">Una strada verso la gloria.</p>
           </div>
           <div class="podium" id="podium"></div>
           <div class="story-stats" id="storyStats"></div>
@@ -194,9 +201,9 @@
           <div class="section-heading">
             <div>
               <span class="section-kicker">MATCHDAY 01-03</span>
-              <h2>Fase a gironi</h2>
+              <h2 data-i18n="groups.title">Fase a gironi</h2>
             </div>
-            <p>
+            <p data-i18n="groups.description">
               Prime due classificate e le otto migliori terze accedono al Round of 32.
             </p>
           </div>
@@ -207,9 +214,9 @@
           <div class="section-heading">
             <div>
               <span class="section-kicker">THE ROAD TO GLORY</span>
-              <h2>Knockout bracket</h2>
+              <h2 data-i18n="bracket.title">Tabellone a eliminazione diretta</h2>
             </div>
-            <p>
+            <p data-i18n="bracket.description">
               Seleziona il turno iniziale per vedere quel round e tutti i
               successivi. Clicca una partita per aprire i dati del modello.
             </p>
@@ -227,7 +234,7 @@
           <div class="section-heading">
             <div>
               <span class="section-kicker">TOURNAMENT STORIES</span>
-              <h2>I momenti del torneo</h2>
+              <h2 data-i18n="stories.title">I momenti del torneo</h2>
             </div>
           </div>
           <div class="storyline-grid" id="storylineGrid"></div>
@@ -240,7 +247,7 @@
         <span class="brand-mark mini"></span>
         <span><strong>WORLD CUP 26</strong><small>SCENARIO ENGINE</small></span>
       </div>
-      <p>
+      <p data-i18n="footer.description">
         Modello ensemble, Dixon-Coles, Negative Binomial e prior Monte Carlo.
         Una simulazione rappresenta una possibilità, non una previsione certa.
       </p>
@@ -259,24 +266,24 @@
             <path d="M27 84h26"></path>
             <path d="M32 71h16l5 13H27l5-13Z"></path>
           </svg>
-          <span class="loader-live"><i></i> SIMULAZIONE IN CORSO</span>
+          <span class="loader-live"><i></i> <span data-i18n="loader.live">SIMULAZIONE IN CORSO</span></span>
         </div>
         <div class="loader-journey">
           <div class="loader-journey-line">
             <span id="overlayJourneyProgress"></span>
           </div>
-          <div class="loader-round" data-loader-step="0"><span>01</span><small>GIRONI</small></div>
-          <div class="loader-round" data-loader-step="1"><span>02</span><small>QUALIFICATE</small></div>
+          <div class="loader-round" data-loader-step="0"><span>01</span><small data-i18n="loader.groups">GIRONI</small></div>
+          <div class="loader-round" data-loader-step="1"><span>02</span><small data-i18n="loader.qualified">QUALIFICATE</small></div>
           <div class="loader-round" data-loader-step="2"><span>03</span><small>R32</small></div>
           <div class="loader-round" data-loader-step="3"><span>04</span><small>R16</small></div>
-          <div class="loader-round" data-loader-step="4"><span>05</span><small>QUARTI</small></div>
-          <div class="loader-round" data-loader-step="5"><span>06</span><small>SEMIFINALI</small></div>
-          <div class="loader-round" data-loader-step="6"><span>07</span><small>FINALE</small></div>
+          <div class="loader-round" data-loader-step="4"><span>05</span><small data-i18n="loader.quarters">QUARTI</small></div>
+          <div class="loader-round" data-loader-step="5"><span>06</span><small data-i18n="loader.semis">SEMIFINALI</small></div>
+          <div class="loader-round" data-loader-step="6"><span>07</span><small data-i18n="loader.final">FINALE</small></div>
         </div>
       </div>
       <span class="overlay-kicker">SCENARIO ENGINE</span>
-      <h2 id="overlayStage">Preparazione del torneo</h2>
-      <p id="overlayDetail">Caricamento delle matrici di probabilità...</p>
+      <h2 id="overlayStage" data-i18n="loader.preparing">Preparazione del torneo</h2>
+      <p id="overlayDetail" data-i18n="loader.loadingMatrices">Caricamento delle matrici di probabilità...</p>
       <div class="overlay-progress"><span id="overlayProgress"></span></div>
       <strong id="overlayPercent">0%</strong>
     </div>
@@ -288,15 +295,15 @@
       aria-modal="true"
       aria-labelledby="matchModalTitle"
     >
-      <button class="match-modal-backdrop" type="button" data-close-match aria-label="Chiudi"></button>
+      <button class="match-modal-backdrop" type="button" data-close-match aria-label="Chiudi" data-i18n-aria-label="modal.close"></button>
       <section class="match-modal-panel">
-        <button class="match-modal-close" type="button" data-close-match aria-label="Chiudi dettagli">×</button>
+        <button class="match-modal-close" type="button" data-close-match aria-label="Chiudi dettagli" data-i18n-aria-label="modal.closeDetails">×</button>
         <div id="matchModalContent"></div>
       </section>
     </div>
 
     <div class="toast hidden" id="toast"></div>
-    <script src="./engine.js?v=1" defer></script>
-    <script src="./app.js?v=1" defer></script>
+    <script src="./engine.js?v=3" defer></script>
+    <script src="./app.js?v=3" defer></script>
   </body>
 </html>

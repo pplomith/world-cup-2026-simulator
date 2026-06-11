@@ -1,6 +1,10 @@
 (() => {
   "use strict";
 
+  function engineMessage(italian, english) {
+    return document.documentElement.lang === "en" ? english : italian;
+  }
+
   const UINT32_SCALE = 4294967296;
   const UINT32_MAX = 4294967295;
   const STAGE_LABELS = {
@@ -84,7 +88,11 @@
       view.getUint8(2),
       view.getUint8(3),
     );
-    if (magic !== "WC26") throw new Error("Dataset simulazione non valido");
+    if (magic !== "WC26") {
+      throw new Error(
+        engineMessage("Dataset simulazione non valido", "Invalid simulation dataset"),
+      );
+    }
     const version = view.getUint16(4, true);
     const teamCount = view.getUint16(6, true);
     const groupCount = view.getUint16(8, true);
@@ -95,7 +103,12 @@
       teamCount !== metadata.teams.length ||
       scoreCells !== 121
     ) {
-      throw new Error("Versione dataset non compatibile");
+      throw new Error(
+        engineMessage(
+          "Versione dataset non compatibile",
+          "Incompatible dataset version",
+        ),
+      );
     }
 
     let offset = 16;
@@ -133,7 +146,12 @@
       });
     }
     if (offset !== buffer.byteLength) {
-      throw new Error("Dimensione dataset simulazione non coerente");
+      throw new Error(
+        engineMessage(
+          "Dimensione dataset simulazione non coerente",
+          "Invalid simulation dataset size",
+        ),
+      );
     }
     return { groups, knockouts };
   }
@@ -226,7 +244,12 @@
     }
 
     if (!backtrack(0, new Set())) {
-      throw new Error("Impossibile assegnare le migliori terze al bracket");
+      throw new Error(
+        engineMessage(
+          "Impossibile assegnare le migliori terze al tabellone",
+          "Unable to assign the best third-placed teams to the bracket",
+        ),
+      );
     }
     return solution;
   }
@@ -275,7 +298,10 @@
       const reverse = this.knockoutModels.get(`${teamB}:${teamA}`);
       if (reverse) return reverse;
       throw new Error(
-        `Distribuzione non disponibile: ${this.teams[teamA].name} - ${this.teams[teamB].name}`,
+        engineMessage(
+          `Distribuzione non disponibile: ${this.teams[teamA].name} - ${this.teams[teamB].name}`,
+          `Distribution unavailable: ${this.teams[teamA].name} - ${this.teams[teamB].name}`,
+        ),
       );
     }
 
@@ -410,13 +436,25 @@
           const previous = resultsByNumber.get(Number(result[2]));
           return result[1] === "Winner" ? previous.winner : previous.loser;
         }
-        throw new Error(`Sorgente bracket non risolta: ${source}`);
+        throw new Error(
+          engineMessage(
+            `Sorgente tabellone non risolta: ${source}`,
+            `Unresolved bracket source: ${source}`,
+          ),
+        );
       };
 
       this.schedule.slice(72).forEach((match) => {
         const teamA = resolveSource(match.as, match.i, "as");
         const teamB = resolveSource(match.bs, match.i, "bs");
-        if (teamA === teamB) throw new Error(`Squadra duplicata in M${match.n}`);
+        if (teamA === teamB) {
+          throw new Error(
+            engineMessage(
+              `Squadra duplicata in M${match.n}`,
+              `Duplicate team in M${match.n}`,
+            ),
+          );
+        }
         const record = this.knockoutRecord(teamA, teamB);
         const orientation = orientedModel(record, teamA, teamB);
         const [goalsA, goalsB] = sampleScore(record, rng, orientation.reverse);
@@ -558,7 +596,12 @@
       fetch("./data/simulation-data.bin"),
     ]);
     if (!metadataResponse.ok || !binaryResponse.ok) {
-      throw new Error("Impossibile caricare i dati della simulazione");
+      throw new Error(
+        engineMessage(
+          "Impossibile caricare i dati della simulazione",
+          "Unable to load the simulation data",
+        ),
+      );
     }
     const metadata = await metadataResponse.json();
     const binary = await binaryResponse.arrayBuffer();
