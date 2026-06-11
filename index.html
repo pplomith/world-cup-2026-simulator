@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Simulatore AI del Mondiale FIFA 2026 basato su 100.000 simulazioni Monte Carlo."
+    />
+    <title>World Cup 26 | Scenario Engine</title>
+    <link rel="stylesheet" href="./styles.css?v=1" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="World Cup 26 Scenario Engine">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 42 52" role="img">
+            <path d="M11 3h20l6 10-7 10 3 23H9l3-23-7-10L11 3Z" />
+            <path d="M12 15h18M14 23h14M13 39h16" />
+          </svg>
+        </span>
+        <span>
+          <strong>WORLD CUP 26</strong>
+          <small>SCENARIO ENGINE</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Navigazione principale">
+        <button class="nav-link active" data-scroll="overview">Overview</button>
+        <button class="nav-link" data-scroll="probabilities">Probabilità</button>
+        <button class="nav-link" data-scroll="groups">Groups</button>
+        <button class="nav-link" data-scroll="bracket">Bracket</button>
+      </nav>
+      <div class="model-live">
+        <span class="live-dot"></span>
+        <span>MODEL LIVE</span>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span>CANADA</span><i></i><span>MEXICO</span><i></i><span>USA</span>
+          </div>
+          <h1>
+            UNA COPPA,<br />
+            <span>INFINITE STORIE.</span>
+          </h1>
+          <p>
+            Una simulazione completa del Mondiale 2026, guidata dal modello
+            calibrato e dal prior di 100.000 tornei Monte Carlo. Ogni click crea
+            una nuova possibile storia.
+          </p>
+          <div class="hero-actions">
+            <button class="simulate-button" id="simulateButton">
+              <span class="button-icon">▶</span>
+              <span>
+                <small>GENERA UN NUOVO TORNEO</small>
+                SIMULA ORA
+              </span>
+            </button>
+            <label class="seed-control">
+              <span>SEED OPZIONALE</span>
+              <input id="seedInput" type="number" inputmode="numeric" placeholder="Random" />
+            </label>
+          </div>
+          <div class="hero-meta" id="heroMeta">
+            <div><strong>48</strong><span>SQUADRE</span></div>
+            <div><strong>104</strong><span>PARTITE</span></div>
+            <div><strong>100K</strong><span>MONTE CARLO</span></div>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orbital orbital-a"></div>
+          <div class="orbital orbital-b"></div>
+          <div class="trophy">
+            <div class="trophy-glow"></div>
+            <svg viewBox="0 0 230 360">
+              <defs>
+                <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#fff2a8" />
+                  <stop offset=".35" stop-color="#d8aa35" />
+                  <stop offset=".72" stop-color="#fff0a0" />
+                  <stop offset="1" stop-color="#9c6815" />
+                </linearGradient>
+              </defs>
+              <path
+                fill="url(#gold)"
+                d="M115 10c42 0 76 32 76 72 0 28-16 51-39 63-8 5-12 14-11 23l9 66c2 15 10 28 22 37l18 13v20H40v-20l18-13c12-9 20-22 22-37l9-66c1-9-3-18-11-23-23-12-39-35-39-63 0-40 34-72 76-72Z"
+              />
+              <path
+                fill="#0a2850"
+                opacity=".55"
+                d="M66 70c20-11 35-5 49 6 17 13 33 13 49 2-2 27-23 49-50 49S68 103 66 70Z"
+              />
+              <path fill="url(#gold)" d="M75 304h80l16 38H59l16-38Z" />
+            </svg>
+          </div>
+          <div class="host-badge host-canada">CAN</div>
+          <div class="host-badge host-mexico">MEX</div>
+          <div class="host-badge host-usa">USA</div>
+        </div>
+      </section>
+
+      <section class="dashboard-strip">
+        <div class="strip-copy">
+          <span class="section-kicker">MODEL OUTLOOK</span>
+          <h2>Le favorite prima del calcio d'inizio</h2>
+        </div>
+        <div class="favorites-track" id="favoritesTrack">
+          <div class="skeleton favorite-skeleton"></div>
+          <div class="skeleton favorite-skeleton"></div>
+          <div class="skeleton favorite-skeleton"></div>
+        </div>
+      </section>
+
+      <section class="probabilities-section" id="probabilities">
+        <div class="section-heading probabilities-heading">
+          <div>
+            <span class="section-kicker">PRE-TOURNAMENT OUTLOOK</span>
+            <h2>Le percentuali di tutte le squadre</h2>
+            <p>
+              Probabilità calcolate sulle 100.000 simulazioni prima del calcio
+              d'inizio. I valori indicano la possibilità di raggiungere ogni turno.
+            </p>
+          </div>
+          <div class="probability-controls">
+            <label>
+              <span>CERCA SQUADRA</span>
+              <input id="teamSearch" type="search" placeholder="Es. Spagna, Argentina..." />
+            </label>
+            <label>
+              <span>GIRONE</span>
+              <select id="groupFilter">
+                <option value="">Tutti i gironi</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="group-quick-filters" id="groupQuickFilters" aria-label="Filtra per girone"></div>
+        <div class="probability-table-shell">
+          <table class="probability-table">
+            <thead id="probabilityTableHead"></thead>
+            <tbody id="probabilityTableBody">
+              <tr class="probability-loading">
+                <td colspan="8">Caricamento delle probabilità Monte Carlo...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="probability-count" id="probabilityCount"></p>
+      </section>
+
+      <section class="simulation-empty" id="emptyState">
+        <span class="empty-number">01</span>
+        <div>
+          <span class="section-kicker">READY FOR KICK-OFF</span>
+          <h2>Il tabellone aspetta la sua storia.</h2>
+          <p>
+            Premi “Simula ora” per giocare tutte le 104 partite, definire le
+            migliori terze e attraversare il bracket ufficiale fino alla finale.
+          </p>
+        </div>
+      </section>
+
+      <div class="simulation-content hidden" id="simulationContent">
+        <section class="story-header">
+          <div>
+            <span class="section-kicker">SIMULATION COMPLETE</span>
+            <h2 id="storyTitle">Una nuova storia è stata scritta.</h2>
+          </div>
+          <div class="story-id">
+            <span>SCENARIO ID</span>
+            <strong id="scenarioSeed">-</strong>
+          </div>
+        </section>
+
+        <section class="champion-stage" id="championStage">
+          <div class="champion-rays"></div>
+          <div class="champion-copy">
+            <span class="champion-label">WORLD CHAMPIONS 2026</span>
+            <div class="champion-flag" id="championFlag"></div>
+            <h2 id="championName">-</h2>
+            <p id="championRoute">Una strada verso la gloria.</p>
+          </div>
+          <div class="podium" id="podium"></div>
+          <div class="story-stats" id="storyStats"></div>
+        </section>
+
+        <section class="groups-section reveal-panel" id="groups">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">MATCHDAY 01-03</span>
+              <h2>Fase a gironi</h2>
+            </div>
+            <p>
+              Prime due classificate e le otto migliori terze accedono al Round of 32.
+            </p>
+          </div>
+          <div class="groups-grid" id="groupsGrid"></div>
+        </section>
+
+        <section class="bracket-section reveal-panel" id="bracket">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">THE ROAD TO GLORY</span>
+              <h2>Knockout bracket</h2>
+            </div>
+            <p>
+              Seleziona il turno iniziale per vedere quel round e tutti i
+              successivi. Clicca una partita per aprire i dati del modello.
+            </p>
+          </div>
+          <div class="phase-nav-wrap">
+            <div class="phase-progress"><span id="phaseProgress"></span></div>
+            <div class="phase-nav" id="phaseNav"></div>
+          </div>
+          <div class="bracket-shell">
+            <div class="bracket" id="bracketGrid"></div>
+          </div>
+        </section>
+
+        <section class="storylines-section">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">TOURNAMENT STORIES</span>
+              <h2>I momenti del torneo</h2>
+            </div>
+          </div>
+          <div class="storyline-grid" id="storylineGrid"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="brand footer-brand">
+        <span class="brand-mark mini"></span>
+        <span><strong>WORLD CUP 26</strong><small>SCENARIO ENGINE</small></span>
+      </div>
+      <p>
+        Modello ensemble, Dixon-Coles, Negative Binomial e prior Monte Carlo.
+        Una simulazione rappresenta una possibilità, non una previsione certa.
+      </p>
+    </footer>
+
+    <div class="simulation-overlay hidden" id="simulationOverlay" aria-live="polite">
+      <div class="overlay-grid"></div>
+      <div class="tournament-loader" id="tournamentLoader" aria-hidden="true">
+        <div class="loader-trophy-wrap">
+          <span class="loader-trophy-glow"></span>
+          <svg class="loader-trophy" viewBox="0 0 80 92" role="presentation">
+            <path d="M25 8h30v13c0 18-6 30-15 34-9-4-15-16-15-34V8Z"></path>
+            <path d="M25 15H12v8c0 12 7 20 19 22"></path>
+            <path d="M55 15h13v8c0 12-7 20-19 22"></path>
+            <path d="M40 55v16"></path>
+            <path d="M27 84h26"></path>
+            <path d="M32 71h16l5 13H27l5-13Z"></path>
+          </svg>
+          <span class="loader-live"><i></i> SIMULAZIONE IN CORSO</span>
+        </div>
+        <div class="loader-journey">
+          <div class="loader-journey-line">
+            <span id="overlayJourneyProgress"></span>
+          </div>
+          <div class="loader-round" data-loader-step="0"><span>01</span><small>GIRONI</small></div>
+          <div class="loader-round" data-loader-step="1"><span>02</span><small>QUALIFICATE</small></div>
+          <div class="loader-round" data-loader-step="2"><span>03</span><small>R32</small></div>
+          <div class="loader-round" data-loader-step="3"><span>04</span><small>R16</small></div>
+          <div class="loader-round" data-loader-step="4"><span>05</span><small>QUARTI</small></div>
+          <div class="loader-round" data-loader-step="5"><span>06</span><small>SEMIFINALI</small></div>
+          <div class="loader-round" data-loader-step="6"><span>07</span><small>FINALE</small></div>
+        </div>
+      </div>
+      <span class="overlay-kicker">SCENARIO ENGINE</span>
+      <h2 id="overlayStage">Preparazione del torneo</h2>
+      <p id="overlayDetail">Caricamento delle matrici di probabilità...</p>
+      <div class="overlay-progress"><span id="overlayProgress"></span></div>
+      <strong id="overlayPercent">0%</strong>
+    </div>
+
+    <div
+      class="match-modal hidden"
+      id="matchModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="matchModalTitle"
+    >
+      <button class="match-modal-backdrop" type="button" data-close-match aria-label="Chiudi"></button>
+      <section class="match-modal-panel">
+        <button class="match-modal-close" type="button" data-close-match aria-label="Chiudi dettagli">×</button>
+        <div id="matchModalContent"></div>
+      </section>
+    </div>
+
+    <div class="toast hidden" id="toast"></div>
+    <script src="./engine.js?v=1" defer></script>
+    <script src="./app.js?v=1" defer></script>
+  </body>
+</html>
