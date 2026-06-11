@@ -15,7 +15,8 @@ World Cup final, respecting the structure required for the 48-team format:
 - Third-place match;
 - World Cup final.
 
-GO TO SIMULATE: https://pplomith.github.io/world-cup-2026-simulator/ 
+GO, SIMULATE, ENJOY: https://pplomith.github.io/world-cup-2026-simulator/ 
+
 ## Objective
 
 The objective of the project is to realistically represent the different scenarios
