@@ -5,10 +5,14 @@ const state = {
   matches: new Map(),
   bracketStart: "round_of_32",
   loading: false,
+  language: localStorage.getItem("wc26-language") === "en" ? "en" : "it",
+  openMatchId: null,
 };
 
 const elements = {
   simulateButton: document.getElementById("simulateButton"),
+  languageToggle: document.getElementById("languageToggle"),
+  languageToggleLabel: document.getElementById("languageToggleLabel"),
   seedInput: document.getElementById("seedInput"),
   favoritesTrack: document.getElementById("favoritesTrack"),
   teamSearch: document.getElementById("teamSearch"),
@@ -42,24 +46,359 @@ const elements = {
   toast: document.getElementById("toast"),
 };
 
+const translations = {
+  it: {
+    "meta.description": "Simulatore AI del Mondiale FIFA 2026 basato su 100.000 simulazioni Monte Carlo.",
+    "nav.aria": "Navigazione principale",
+    "nav.overview": "Panoramica",
+    "nav.probabilities": "Probabilità",
+    "nav.groups": "Gironi",
+    "nav.bracket": "Tabellone",
+    "nav.modelLive": "MODELLO ATTIVO",
+    "language.switch": "Passa alla lingua inglese",
+    "hero.titleTop": "UNA COPPA,",
+    "hero.titleBottom": "INFINITE STORIE.",
+    "hero.description": "Una simulazione completa del Mondiale 2026, guidata dal modello calibrato e dal prior di 100.000 tornei Monte Carlo. Ogni click crea una nuova possibile storia.",
+    "hero.buttonSmall": "GENERA UN NUOVO TORNEO",
+    "hero.button": "SIMULA ORA",
+    "hero.seed": "SEED OPZIONALE",
+    "hero.seedPlaceholder": "Casuale",
+    "hero.teams": "SQUADRE",
+    "hero.matches": "PARTITE",
+    "favorites.kicker": "PANORAMICA MODELLO",
+    "favorites.title": "Le favorite prima del calcio d'inizio",
+    "probabilities.kicker": "PRIMA DEL TORNEO",
+    "probabilities.title": "Le percentuali di tutte le squadre",
+    "probabilities.description": "Probabilità calcolate sulle 100.000 simulazioni prima del calcio d'inizio. I valori indicano la possibilità di raggiungere ogni turno.",
+    "probabilities.search": "CERCA SQUADRA",
+    "probabilities.searchPlaceholder": "Es. Spagna, Argentina...",
+    "probabilities.group": "GIRONE",
+    "probabilities.loading": "Caricamento delle probabilità Monte Carlo...",
+    "probabilities.groupFilterAria": "Filtra per girone",
+    "empty.kicker": "PRONTI AL CALCIO D'INIZIO",
+    "empty.title": "Il tabellone aspetta la sua storia.",
+    "empty.description": "Premi “Simula ora” per giocare tutte le 104 partite, definire le migliori terze e attraversare il tabellone ufficiale fino alla finale.",
+    "story.kicker": "SIMULAZIONE COMPLETATA",
+    "story.title": "Una nuova storia è stata scritta.",
+    "story.scenario": "ID SCENARIO",
+    "champion.label": "CAMPIONI DEL MONDO 2026",
+    "champion.defaultRoute": "Una strada verso la gloria.",
+    "groups.title": "Fase a gironi",
+    "groups.description": "Prime due classificate e le otto migliori terze accedono al Round of 32.",
+    "bracket.title": "Tabellone a eliminazione diretta",
+    "bracket.description": "Seleziona il turno iniziale per vedere quel round e tutti i successivi. Clicca una partita per aprire i dati del modello.",
+    "stories.title": "I momenti del torneo",
+    "footer.description": "Modello ensemble, Dixon-Coles, Negative Binomial e prior Monte Carlo. Una simulazione rappresenta una possibilità, non una previsione certa.",
+    "loader.live": "SIMULAZIONE IN CORSO",
+    "loader.groups": "GIRONI",
+    "loader.qualified": "QUALIFICATE",
+    "loader.quarters": "QUARTI",
+    "loader.semis": "SEMIFINALI",
+    "loader.final": "FINALE",
+    "loader.preparing": "Preparazione del torneo",
+    "loader.loadingMatrices": "Caricamento delle matrici di probabilità...",
+    "modal.close": "Chiudi",
+    "modal.closeDetails": "Chiudi dettagli",
+    "phase.groups.title": "Analisi dei gironi",
+    "phase.groups.detail": "72 partite, 12 gruppi, 48 nazionali",
+    "phase.tables.title": "Classifiche e migliori terze",
+    "phase.tables.detail": "Applicazione dei tie-break ufficiali",
+    "phase.r32.title": "Round of 32",
+    "phase.r32.detail": "Composizione del tabellone FIFA",
+    "phase.r16.title": "Round of 16",
+    "phase.r16.detail": "Le possibilità iniziano a restringersi",
+    "phase.qf.title": "Quarti di finale",
+    "phase.qf.detail": "Otto squadre ancora in corsa",
+    "phase.sf.title": "Semifinali",
+    "phase.sf.detail": "Il trofeo è a due partite di distanza",
+    "phase.finals.title": "Finali",
+    "phase.finals.detail": "Titolo mondiale e finale per il terzo posto",
+    "round.roundOf32": "Round of 32",
+    "round.roundOf16": "Round of 16",
+    "round.quarterFinals": "Quarti di finale",
+    "round.semiFinals": "Semifinali",
+    "round.finals": "3° posto e finale",
+    "table.rank": "Pos.",
+    "table.team": "Squadra",
+    "table.first": "1° posto",
+    "table.second": "2° posto",
+    "table.third": "3° posto",
+    "table.fourth": "4° posto",
+    "table.roundOf16": "Ottavi",
+    "table.quarters": "Quarti",
+    "table.semiFinal": "Semifinale",
+    "table.final": "Finale",
+    "table.champion": "Campione",
+    "filter.allGroups": "Tutti i gironi",
+    "filter.all": "Tutti",
+    "filter.group": "Gruppo {group}",
+    "filter.empty": "Nessuna squadra corrisponde ai filtri selezionati.",
+    "filter.groupSummary": "Girone {group}: probabilità di posizione e avanzamento",
+    "filter.count": "{visible} di {total} squadre visualizzate",
+    "error.model": "Impossibile caricare il modello: {message}",
+    "loader.validating": "Convalida del tabellone",
+    "loader.checking": "Controllo delle 32 squadre e dei percorsi a eliminazione diretta",
+    "loader.ready": "La storia è pronta",
+    "loader.champion": "{team} è campione del mondo",
+    "penalties": "Rigori {a}-{b}",
+    "champion.route": "Il percorso finale: {route}",
+    "champion.newRoute": "Una nuova strada verso la gloria.",
+    "champion.first": "CAMPIONE",
+    "champion.second": "2°",
+    "champion.third": "3°",
+    "stats.totalGoals": "Gol totali",
+    "stats.goalsPerMatch": "Gol / partita",
+    "stats.shootouts": "Serie ai rigori",
+    "stats.preTournamentChance": "Chance pre-torneo",
+    "group.label": "Girone {group}",
+    "group.finalTable": "CLASSIFICA FINALE",
+    "group.team": "SQUADRA",
+    "group.played": "G",
+    "group.goalDifference": "DG",
+    "group.points": "PT",
+    "group.showMatches": "Vedi le 6 partite",
+    "group.hideMatches": "Nascondi le partite",
+    "match.openAria": "Apri i dettagli di {teamA} contro {teamB}",
+    "match.worldFinal": "FINALE MONDIALE · ",
+    "match.worldTitle": "Titolo di campione del mondo",
+    "match.openStats": "Apri statistiche",
+    "match.details": "DETTAGLI +",
+    "bracket.podium": "PODIO",
+    "bracket.knockout": "FASE A ELIMINAZIONE DIRETTA",
+    "bracket.match": "PARTITA",
+    "bracket.matches": "PARTITE",
+    "stage.round_of_32": "Round of 32",
+    "stage.round_of_16": "Round of 16",
+    "stage.quarter_final": "Quarti di finale",
+    "stage.semi_final": "Semifinali",
+    "stage.third_place": "Finale 3° posto",
+    "stage.final": "Finale",
+    "modal.match": "Partita",
+    "modal.versus": "contro",
+    "modal.advances": "{team} passa il turno",
+    "modal.drawResult": "Partita terminata in pareggio",
+    "modal.titleChance": "Chance titolo {value}",
+    "modal.preMatch": "PROBABILITÀ PRE-PARTITA",
+    "modal.draw90": "Pareggio nei 90'",
+    "modal.modelData": "DATI DEL MODELLO",
+    "modal.expectedGoals": "Gol attesi",
+    "modal.baseProbability": "Probabilità base 1X2",
+    "modal.simulatedWinner": "Vincitore simulato",
+    "modal.draw": "Pareggio",
+    "story.upsetTitle": "La sorpresa del torneo",
+    "story.upsetText": "{winner} ha vinto con appena il {probability} di probabilità pre-partita. {match}.",
+    "story.highTitle": "La partita più spettacolare",
+    "story.highText": "{match}, giocata a {venue}.",
+    "story.modelTitle": "Una storia, non un copione",
+    "story.modelText": "Il prior Monte Carlo pesa il {weight}%, mentre il risultato viene campionato dalla distribuzione calibrata {distribution}.",
+    "story.championTitle": "{team} conquista il mondo.",
+    "error.engineReady": "Motore di simulazione non ancora pronto",
+    "error.simulation": "Simulazione non riuscita: {message}",
+    "model.tooltip": "Dixon-Coles rho {rho}, {distribution}, prior Monte Carlo {weight}%",
+    "distribution.negative_binomial": "binomiale negativa",
+    "distribution.poisson": "Poisson",
+  },
+  en: {
+    "meta.description": "FIFA World Cup 2026 AI simulator based on 100,000 Monte Carlo tournament simulations.",
+    "nav.aria": "Main navigation",
+    "nav.overview": "Overview",
+    "nav.probabilities": "Probabilities",
+    "nav.groups": "Groups",
+    "nav.bracket": "Bracket",
+    "nav.modelLive": "MODEL LIVE",
+    "language.switch": "Switch to Italian",
+    "hero.titleTop": "ONE CUP,",
+    "hero.titleBottom": "INFINITE STORIES.",
+    "hero.description": "A complete 2026 World Cup simulation powered by the calibrated model and a prior built from 100,000 Monte Carlo tournaments. Every click creates a new possible story.",
+    "hero.buttonSmall": "GENERATE A NEW TOURNAMENT",
+    "hero.button": "SIMULATE NOW",
+    "hero.seed": "OPTIONAL SEED",
+    "hero.seedPlaceholder": "Random",
+    "hero.teams": "TEAMS",
+    "hero.matches": "MATCHES",
+    "favorites.kicker": "MODEL OUTLOOK",
+    "favorites.title": "Pre-tournament favorites",
+    "probabilities.kicker": "PRE-TOURNAMENT OUTLOOK",
+    "probabilities.title": "Probabilities for every team",
+    "probabilities.description": "Probabilities calculated from 100,000 simulations before kick-off. Values show each team's chance of reaching every round.",
+    "probabilities.search": "SEARCH TEAM",
+    "probabilities.searchPlaceholder": "E.g. Spain, Argentina...",
+    "probabilities.group": "GROUP",
+    "probabilities.loading": "Loading Monte Carlo probabilities...",
+    "probabilities.groupFilterAria": "Filter by group",
+    "empty.kicker": "READY FOR KICK-OFF",
+    "empty.title": "The bracket is waiting for its story.",
+    "empty.description": "Press “Simulate now” to play all 104 matches, select the best third-placed teams and follow the official bracket all the way to the final.",
+    "story.kicker": "SIMULATION COMPLETE",
+    "story.title": "A new story has been written.",
+    "story.scenario": "SCENARIO ID",
+    "champion.label": "WORLD CHAMPIONS 2026",
+    "champion.defaultRoute": "A road to glory.",
+    "groups.title": "Group stage",
+    "groups.description": "The top two teams and the eight best third-placed teams advance to the Round of 32.",
+    "bracket.title": "Knockout bracket",
+    "bracket.description": "Select the opening round to display it and every following round. Click a match to view the model data.",
+    "stories.title": "Tournament stories",
+    "footer.description": "Ensemble model, Dixon-Coles, Negative Binomial and Monte Carlo prior. A simulation is one possibility, not a certain prediction.",
+    "loader.live": "SIMULATION IN PROGRESS",
+    "loader.groups": "GROUPS",
+    "loader.qualified": "QUALIFIED",
+    "loader.quarters": "QUARTERS",
+    "loader.semis": "SEMIFINALS",
+    "loader.final": "FINAL",
+    "loader.preparing": "Preparing the tournament",
+    "loader.loadingMatrices": "Loading probability matrices...",
+    "modal.close": "Close",
+    "modal.closeDetails": "Close details",
+    "phase.groups.title": "Analyzing the groups",
+    "phase.groups.detail": "72 matches, 12 groups, 48 national teams",
+    "phase.tables.title": "Standings and best third-placed teams",
+    "phase.tables.detail": "Applying the official tie-break rules",
+    "phase.r32.title": "Round of 32",
+    "phase.r32.detail": "Building the official FIFA bracket",
+    "phase.r16.title": "Round of 16",
+    "phase.r16.detail": "The field begins to narrow",
+    "phase.qf.title": "Quarter-finals",
+    "phase.qf.detail": "Eight teams remain in contention",
+    "phase.sf.title": "Semi-finals",
+    "phase.sf.detail": "The trophy is two matches away",
+    "phase.finals.title": "Finals",
+    "phase.finals.detail": "World title and third-place match",
+    "round.roundOf32": "Round of 32",
+    "round.roundOf16": "Round of 16",
+    "round.quarterFinals": "Quarter-finals",
+    "round.semiFinals": "Semi-finals",
+    "round.finals": "Third place & final",
+    "table.rank": "Rank",
+    "table.team": "Team",
+    "table.first": "1st place",
+    "table.second": "2nd place",
+    "table.third": "3rd place",
+    "table.fourth": "4th place",
+    "table.roundOf16": "Round of 16",
+    "table.quarters": "Quarter-finals",
+    "table.semiFinal": "Semi-final",
+    "table.final": "Final",
+    "table.champion": "Champion",
+    "filter.allGroups": "All groups",
+    "filter.all": "All",
+    "filter.group": "Group {group}",
+    "filter.empty": "No teams match the selected filters.",
+    "filter.groupSummary": "Group {group}: finishing-position and advancement probabilities",
+    "filter.count": "Showing {visible} of {total} teams",
+    "error.model": "Unable to load the model: {message}",
+    "loader.validating": "Validating the bracket",
+    "loader.checking": "Checking all 32 teams and knockout paths",
+    "loader.ready": "The story is ready",
+    "loader.champion": "{team} are world champions",
+    "penalties": "Penalties {a}-{b}",
+    "champion.route": "Final-stage route: {route}",
+    "champion.newRoute": "A new road to glory.",
+    "champion.first": "CHAMPION",
+    "champion.second": "2ND",
+    "champion.third": "3RD",
+    "stats.totalGoals": "Total goals",
+    "stats.goalsPerMatch": "Goals / match",
+    "stats.shootouts": "Penalty shootouts",
+    "stats.preTournamentChance": "Pre-tournament chance",
+    "group.label": "Group {group}",
+    "group.finalTable": "FINAL TABLE",
+    "group.team": "TEAM",
+    "group.played": "P",
+    "group.goalDifference": "GD",
+    "group.points": "PTS",
+    "group.showMatches": "View all 6 matches",
+    "group.hideMatches": "Hide matches",
+    "match.openAria": "Open details for {teamA} versus {teamB}",
+    "match.worldFinal": "WORLD CUP FINAL · ",
+    "match.worldTitle": "World championship title",
+    "match.openStats": "Open statistics",
+    "match.details": "DETAILS +",
+    "bracket.podium": "PODIUM",
+    "bracket.knockout": "KNOCKOUT STAGE",
+    "bracket.match": "MATCH",
+    "bracket.matches": "MATCHES",
+    "stage.round_of_32": "Round of 32",
+    "stage.round_of_16": "Round of 16",
+    "stage.quarter_final": "Quarter-finals",
+    "stage.semi_final": "Semi-finals",
+    "stage.third_place": "Third-place match",
+    "stage.final": "Final",
+    "modal.match": "Match",
+    "modal.versus": "vs",
+    "modal.advances": "{team} advance",
+    "modal.drawResult": "Match ended level",
+    "modal.titleChance": "Title chance {value}",
+    "modal.preMatch": "PRE-MATCH PROBABILITIES",
+    "modal.draw90": "Draw after 90 minutes",
+    "modal.modelData": "MODEL DATA",
+    "modal.expectedGoals": "Expected goals",
+    "modal.baseProbability": "Base 1X2 probabilities",
+    "modal.simulatedWinner": "Simulated winner",
+    "modal.draw": "Draw",
+    "story.upsetTitle": "Upset of the tournament",
+    "story.upsetText": "{winner} won with only a {probability} pre-match probability. {match}.",
+    "story.highTitle": "Highest-scoring match",
+    "story.highText": "{match}, played in {venue}.",
+    "story.modelTitle": "A story, not a script",
+    "story.modelText": "The Monte Carlo prior carries a {weight}% weight, while the result is sampled from the calibrated {distribution} distribution.",
+    "story.championTitle": "{team} conquer the world.",
+    "error.engineReady": "The simulation engine is not ready yet",
+    "error.simulation": "Simulation failed: {message}",
+    "model.tooltip": "Dixon-Coles rho {rho}, {distribution}, Monte Carlo prior {weight}%",
+    "distribution.negative_binomial": "negative binomial",
+    "distribution.poisson": "Poisson",
+  },
+};
+
+function t(key, variables = {}) {
+  const template =
+    translations[state.language]?.[key] ??
+    translations.it[key] ??
+    key;
+  return Object.entries(variables).reduce(
+    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
+    template,
+  );
+}
+
+function applyStaticTranslations() {
+  document.documentElement.lang = state.language;
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
+    node.setAttribute("aria-label", t(node.dataset.i18nAriaLabel));
+  });
+  document.querySelectorAll("[data-i18n-content]").forEach((node) => {
+    node.setAttribute("content", t(node.dataset.i18nContent));
+  });
+  elements.languageToggleLabel.textContent =
+    state.language === "it" ? "EN" : "IT";
+  elements.languageToggle.setAttribute("aria-label", t("language.switch"));
+}
+
 const phaseDetails = [
-  ["Analisi dei gironi", "72 partite, 12 gruppi, 48 nazionali"],
-  ["Classifiche e migliori terze", "Applicazione dei tie-break ufficiali"],
-  ["Round of 32", "Composizione del tabellone FIFA"],
-  ["Round of 16", "Le possibilità iniziano a restringersi"],
-  ["Quarti di finale", "Otto squadre ancora in corsa"],
-  ["Semifinali", "Il trofeo è a due partite di distanza"],
-  ["Finali", "Titolo mondiale e finale per il terzo posto"],
+  ["phase.groups.title", "phase.groups.detail"],
+  ["phase.tables.title", "phase.tables.detail"],
+  ["phase.r32.title", "phase.r32.detail"],
+  ["phase.r16.title", "phase.r16.detail"],
+  ["phase.qf.title", "phase.qf.detail"],
+  ["phase.sf.title", "phase.sf.detail"],
+  ["phase.finals.title", "phase.finals.detail"],
 ];
 
 const bracketGroups = [
-  { id: "round_of_32", label: "Round of 32", stageIds: ["round_of_32"] },
-  { id: "round_of_16", label: "Round of 16", stageIds: ["round_of_16"] },
-  { id: "quarter_final", label: "Quarti di finale", stageIds: ["quarter_final"] },
-  { id: "semi_final", label: "Semifinali", stageIds: ["semi_final"] },
+  { id: "round_of_32", labelKey: "round.roundOf32", stageIds: ["round_of_32"] },
+  { id: "round_of_16", labelKey: "round.roundOf16", stageIds: ["round_of_16"] },
+  { id: "quarter_final", labelKey: "round.quarterFinals", stageIds: ["quarter_final"] },
+  { id: "semi_final", labelKey: "round.semiFinals", stageIds: ["semi_final"] },
   {
     id: "finals",
-    label: "3° posto e finale",
+    labelKey: "round.finals",
     stageIds: ["final", "third_place"],
   },
 ];
@@ -92,7 +431,21 @@ const bracketDependencies = {
 };
 
 function percent(value, digits = 1) {
-  return `${(Number(value) * 100).toFixed(digits)}%`;
+  return new Intl.NumberFormat(state.language === "it" ? "it-IT" : "en-US", {
+    style: "percent",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(Number(value));
+}
+
+function formatDate(value) {
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(state.language === "it" ? "it-IT" : "en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
 }
 
 function escapeHtml(value) {
@@ -144,8 +497,14 @@ function renderFavorites(favorites) {
 
 function displayPercent(value) {
   const numeric = Number(value);
-  if (numeric > 0 && numeric < 0.001) return "&lt;0.1%";
+  if (numeric > 0 && numeric < 0.001) {
+    return state.language === "it" ? "&lt;0,1%" : "&lt;0.1%";
+  }
   return percent(numeric);
+}
+
+function distributionLabel(value) {
+  return t(`distribution.${value}`);
 }
 
 function probabilityCell(value, label, featured = false) {
@@ -160,23 +519,23 @@ function probabilityCell(value, label, featured = false) {
 function renderProbabilityTableHead(showGroupPositions) {
   const groupColumns = showGroupPositions
     ? `
-        <th scope="col" class="position-probability-column">1° posto</th>
-        <th scope="col" class="position-probability-column">2° posto</th>
-        <th scope="col" class="position-probability-column">3° posto</th>
-        <th scope="col" class="position-probability-column">4° posto</th>
+        <th scope="col" class="position-probability-column">${t("table.first")}</th>
+        <th scope="col" class="position-probability-column">${t("table.second")}</th>
+        <th scope="col" class="position-probability-column">${t("table.third")}</th>
+        <th scope="col" class="position-probability-column">${t("table.fourth")}</th>
       `
     : "";
   elements.probabilityTableHead.innerHTML = `
     <tr>
-      <th scope="col">Rank</th>
-      <th scope="col">Squadra</th>
+      <th scope="col">${t("table.rank")}</th>
+      <th scope="col">${t("table.team")}</th>
       ${groupColumns}
       <th scope="col">R32</th>
-      <th scope="col">Ottavi</th>
-      <th scope="col">Quarti</th>
-      <th scope="col">Semifinale</th>
-      <th scope="col">Finale</th>
-      <th scope="col" class="title-column">Campione</th>
+      <th scope="col">${t("table.roundOf16")}</th>
+      <th scope="col">${t("table.quarters")}</th>
+      <th scope="col">${t("table.semiFinal")}</th>
+      <th scope="col">${t("table.final")}</th>
+      <th scope="col" class="title-column">${t("table.champion")}</th>
     </tr>
   `;
 }
@@ -218,54 +577,55 @@ function renderProbabilityTable() {
           (team) => `
             <tr>
               <td class="rank-cell" data-label="Rank">#${team.rank}</td>
-              <th scope="row" class="probability-team" data-label="Squadra">
+              <th scope="row" class="probability-team" data-label="${t("table.team")}">
                 ${flag(team)}
                 <span>
                   <strong>${teamName(team)}</strong>
-                  <small>Gruppo ${escapeHtml(team.group)}</small>
+                  <small>${t("filter.group", { group: escapeHtml(team.group) })}</small>
                 </span>
               </th>
               ${
                 showGroupPositions
                   ? `
-                    ${probabilityCell(team.groupFirstProbability, "1° posto", true)}
-                    ${probabilityCell(team.groupSecondProbability, "2° posto")}
-                    ${probabilityCell(team.groupThirdProbability, "3° posto")}
-                    ${probabilityCell(team.groupFourthProbability, "4° posto")}
+                    ${probabilityCell(team.groupFirstProbability, t("table.first"), true)}
+                    ${probabilityCell(team.groupSecondProbability, t("table.second"))}
+                    ${probabilityCell(team.groupThirdProbability, t("table.third"))}
+                    ${probabilityCell(team.groupFourthProbability, t("table.fourth"))}
                   `
                   : ""
               }
               ${probabilityCell(team.roundOf32Probability, "R32")}
-              ${probabilityCell(team.roundOf16Probability, "Ottavi")}
-              ${probabilityCell(team.quarterFinalProbability, "Quarti")}
-              ${probabilityCell(team.semiFinalProbability, "Semifinale")}
-              ${probabilityCell(team.reachFinalProbability, "Finale")}
-              ${probabilityCell(team.worldCupProbability, "Campione", true)}
+              ${probabilityCell(team.roundOf16Probability, t("table.roundOf16"))}
+              ${probabilityCell(team.quarterFinalProbability, t("table.quarters"))}
+              ${probabilityCell(team.semiFinalProbability, t("table.semiFinal"))}
+              ${probabilityCell(team.reachFinalProbability, t("table.final"))}
+              ${probabilityCell(team.worldCupProbability, t("table.champion"), true)}
             </tr>
           `,
         )
         .join("")
     : `
         <tr class="probability-empty-row">
-          <td colspan="${columnCount}">Nessuna squadra corrisponde ai filtri selezionati.</td>
+          <td colspan="${columnCount}">${t("filter.empty")}</td>
         </tr>
       `;
   elements.probabilityCount.textContent =
     selectedGroup
-      ? `Girone ${selectedGroup}: probabilità di posizione e avanzamento`
-      : `${filtered.length} di ${teams.length} squadre visualizzate`;
+      ? t("filter.groupSummary", { group: selectedGroup })
+      : t("filter.count", { visible: filtered.length, total: teams.length });
 }
 
 function renderAllProbabilities(teams) {
+  const selectedGroup = elements.groupFilter.value;
   const groups = [...new Set(teams.map((team) => team.group))].sort();
   elements.groupFilter.innerHTML = `
-    <option value="">Tutti i gironi</option>
+    <option value="">${t("filter.allGroups")}</option>
     ${groups
-      .map((group) => `<option value="${escapeHtml(group)}">Gruppo ${escapeHtml(group)}</option>`)
+      .map((group) => `<option value="${escapeHtml(group)}">${t("filter.group", { group: escapeHtml(group) })}</option>`)
       .join("")}
   `;
   elements.groupQuickFilters.innerHTML = `
-    <button class="group-filter-button active" type="button" data-group-filter="">Tutti</button>
+    <button class="group-filter-button active" type="button" data-group-filter="">${t("filter.all")}</button>
     ${groups
       .map(
         (group) => `
@@ -284,6 +644,7 @@ function renderAllProbabilities(teams) {
         renderProbabilityTable();
       });
     });
+  elements.groupFilter.value = groups.includes(selectedGroup) ? selectedGroup : "";
   renderProbabilityTable();
 }
 
@@ -295,10 +656,13 @@ async function loadBootstrap() {
     renderAllProbabilities(state.bootstrap.allTeams);
     const model = state.bootstrap.model;
     document.getElementById("heroMeta").title =
-      `Dixon-Coles rho ${model.dixonColesRho}, ${model.scoreDistribution}, ` +
-      `Monte Carlo prior ${Math.round(model.monteCarloPriorWeight * 100)}%`;
+      t("model.tooltip", {
+        rho: model.dixonColesRho,
+        distribution: distributionLabel(model.scoreDistribution),
+        weight: Math.round(model.monteCarloPriorWeight * 100),
+      });
   } catch (error) {
-    showToast(`Impossibile caricare il modello: ${error.message}`);
+    showToast(t("error.model", { message: error.message }));
   }
 }
 
@@ -325,9 +689,9 @@ async function runLoadingSequence(simulationPromise) {
     });
 
   for (let index = 0; index < phaseDetails.length; index += 1) {
-    const [title, detail] = phaseDetails[index];
-    elements.overlayStage.textContent = title;
-    elements.overlayDetail.textContent = detail;
+    const [titleKey, detailKey] = phaseDetails[index];
+    elements.overlayStage.textContent = t(titleKey);
+    elements.overlayDetail.textContent = t(detailKey);
     journeySteps.forEach((step, stepIndex) => {
       step.classList.toggle("completed", stepIndex < index);
       step.classList.toggle("active", stepIndex === index);
@@ -341,16 +705,18 @@ async function runLoadingSequence(simulationPromise) {
   }
 
   while (!result && !failure) {
-    elements.overlayStage.textContent = "Convalida del tabellone";
-    elements.overlayDetail.textContent = "Controllo delle 32 squadre e dei percorsi knockout";
+    elements.overlayStage.textContent = t("loader.validating");
+    elements.overlayDetail.textContent = t("loader.checking");
     await delay(180);
   }
   if (failure) {
     elements.overlay.classList.add("hidden");
     throw failure;
   }
-  elements.overlayStage.textContent = "La storia è pronta";
-  elements.overlayDetail.textContent = `${result.summary.champion.name} è campione del mondo`;
+  elements.overlayStage.textContent = t("loader.ready");
+  elements.overlayDetail.textContent = t("loader.champion", {
+    team: result.summary.champion.name,
+  });
   elements.tournamentLoader.classList.add("complete");
   journeySteps.forEach((step) => {
     step.classList.remove("active");
@@ -373,7 +739,10 @@ function scoreText(match) {
 
 function penaltyText(match) {
   if (!match.afterPenalties || !match.penalties) return "";
-  return `Rigori ${match.penalties.teamA}-${match.penalties.teamB}`;
+  return t("penalties", {
+    a: match.penalties.teamA,
+    b: match.penalties.teamB,
+  });
 }
 
 function renderChampion(simulation) {
@@ -395,32 +764,32 @@ function renderChampion(simulation) {
     )
     .join("  ·  ");
   elements.championRoute.textContent = route
-    ? `Il percorso finale: ${route}`
-    : "Una nuova strada verso la gloria.";
+    ? t("champion.route", { route })
+    : t("champion.newRoute");
 
   elements.podium.innerHTML = `
     <div class="podium-place second">
       <span class="podium-flag">${runnerUp.flag}</span>
       <strong>${teamName(runnerUp)}</strong>
-      <span>2ND</span>
+      <span>${t("champion.second")}</span>
     </div>
     <div class="podium-place first">
       <span class="podium-flag">${champion.flag}</span>
       <strong>${teamName(champion)}</strong>
-      <span>CHAMPION</span>
+      <span>${t("champion.first")}</span>
     </div>
     <div class="podium-place third">
       <span class="podium-flag">${thirdPlace.flag}</span>
       <strong>${teamName(thirdPlace)}</strong>
-      <span>3RD</span>
+      <span>${t("champion.third")}</span>
     </div>
   `;
 
   elements.storyStats.innerHTML = `
-    <div class="story-stat"><span>Gol totali</span><strong>${simulation.summary.totalGoals}</strong></div>
-    <div class="story-stat"><span>Gol / partita</span><strong>${simulation.summary.goalsPerMatch.toFixed(2)}</strong></div>
-    <div class="story-stat"><span>Serie ai rigori</span><strong>${simulation.summary.penaltyShootouts}</strong></div>
-    <div class="story-stat"><span>Chance pre-torneo</span><strong>${percent(champion.worldCupProbability)}</strong></div>
+    <div class="story-stat"><span>${t("stats.totalGoals")}</span><strong>${simulation.summary.totalGoals}</strong></div>
+    <div class="story-stat"><span>${t("stats.goalsPerMatch")}</span><strong>${simulation.summary.goalsPerMatch.toLocaleString(state.language === "it" ? "it-IT" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></div>
+    <div class="story-stat"><span>${t("stats.shootouts")}</span><strong>${simulation.summary.penaltyShootouts}</strong></div>
+    <div class="story-stat"><span>${t("stats.preTournamentChance")}</span><strong>${percent(champion.worldCupProbability)}</strong></div>
   `;
 }
 
@@ -440,11 +809,11 @@ function renderGroups(groups) {
       (group, groupIndex) => `
         <article class="group-card" data-group="${group.group}" style="animation-delay:${groupIndex * 45}ms">
           <header class="group-title">
-            <h3>Group ${group.group}</h3>
-            <span>FINAL TABLE</span>
+            <h3>${t("group.label", { group: group.group })}</h3>
+            <span>${t("group.finalTable")}</span>
           </header>
           <div class="standings-head">
-            <span>#</span><span>TEAM</span><span>P</span><span>GD</span><span>PTS</span>
+            <span>#</span><span>${t("group.team")}</span><span>${t("group.played")}</span><span>${t("group.goalDifference")}</span><span>${t("group.points")}</span>
           </div>
           <div class="standings">
             ${group.standings
@@ -462,7 +831,7 @@ function renderGroups(groups) {
               .join("")}
           </div>
           <button class="group-matches-toggle" type="button">
-            Vedi le 6 partite
+            ${t("group.showMatches")}
           </button>
           <div class="group-match-list">
             ${group.matches.map(renderGroupMatch).join("")}
@@ -477,8 +846,8 @@ function renderGroups(groups) {
       const card = button.closest(".group-card");
       card.classList.toggle("open");
       button.textContent = card.classList.contains("open")
-        ? "Nascondi le partite"
-        : "Vedi le 6 partite";
+        ? t("group.hideMatches")
+        : t("group.showMatches");
     });
   });
 }
@@ -494,10 +863,10 @@ function renderMatchCard(match, index) {
         type="button"
         data-match-id="${escapeHtml(match.matchId)}"
         style="animation-delay:${index * 35}ms"
-        aria-label="Apri dettagli ${teamName(match.teamA)} contro ${teamName(match.teamB)}"
+        aria-label="${t("match.openAria", { teamA: teamName(match.teamA), teamB: teamName(match.teamB) })}"
       >
         <div class="match-meta">
-          <span>${isWorldFinal ? "FINALE MONDIALE · " : ""}M${match.matchNumber}</span>
+          <span>${isWorldFinal ? t("match.worldFinal") : ""}M${match.matchNumber}</span>
           <span>${escapeHtml(match.venue)}</span>
         </div>
         <div class="match-team-row ${teamAWon ? "winner" : teamBWon ? "loser" : ""}">
@@ -511,8 +880,8 @@ function renderMatchCard(match, index) {
           <strong class="match-score">${match.goalsB}</strong>
         </div>
         <div class="match-card-footer">
-          <span>${match.afterPenalties ? penaltyText(match) : isWorldFinal ? "Titolo di campione del mondo" : "Apri statistiche"}</span>
-          <strong>DETTAGLI +</strong>
+          <span>${match.afterPenalties ? penaltyText(match) : isWorldFinal ? t("match.worldTitle") : t("match.openStats")}</span>
+          <strong>${t("match.details")}</strong>
         </div>
       </button>
     </div>
@@ -565,10 +934,10 @@ function renderBracket(stages, startId = state.bracketStart) {
               bracketGroups.findIndex((item) => item.id === group.id) + 1,
             ).padStart(2, "0")}</span>
             <span class="round-title">
-              <small>${group.id === "finals" ? "PODIO" : "FASE A ELIMINAZIONE DIRETTA"}</small>
-              <strong>${escapeHtml(group.label)}</strong>
+              <small>${group.id === "finals" ? t("bracket.podium") : t("bracket.knockout")}</small>
+              <strong>${escapeHtml(t(group.labelKey))}</strong>
             </span>
-            <span class="round-match-count">${matches.length} ${matches.length === 1 ? "PARTITA" : "PARTITE"}</span>
+            <span class="round-match-count">${matches.length} ${matches.length === 1 ? t("bracket.match") : t("bracket.matches")}</span>
           </header>
           <div class="bracket-matches">
             ${matches.map(renderMatchCard).join("")}
@@ -710,8 +1079,7 @@ function drawBracketConnections() {
 }
 
 function matchStageLabel(match) {
-  const stage = state.simulation?.stages.find((item) => item.id === match.stage);
-  return stage?.label || match.stage;
+  return t(`stage.${match.stage}`);
 }
 
 function modalProbability(label, value, tone) {
@@ -726,20 +1094,21 @@ function modalProbability(label, value, tone) {
 function openMatchModal(matchId) {
   const match = state.matches.get(matchId);
   if (!match) return;
+  state.openMatchId = matchId;
   const winnerText = match.winner
-    ? `${match.winner} passa il turno`
-    : "Partita terminata in pareggio";
+    ? t("modal.advances", { team: match.winner })
+    : t("modal.drawResult");
   elements.matchModalContent.innerHTML = `
     <header class="match-modal-header">
-      <span>${escapeHtml(matchStageLabel(match))} · Match ${match.matchNumber}</span>
-      <h2 id="matchModalTitle">${teamName(match.teamA)} vs ${teamName(match.teamB)}</h2>
-      <p>${escapeHtml(match.date)} · ${escapeHtml(match.venue)}, ${escapeHtml(match.country)}</p>
+      <span>${escapeHtml(matchStageLabel(match))} · ${t("modal.match")} ${match.matchNumber}</span>
+      <h2 id="matchModalTitle">${teamName(match.teamA)} ${t("modal.versus")} ${teamName(match.teamB)}</h2>
+      <p>${escapeHtml(formatDate(match.date))} · ${escapeHtml(match.venue)}, ${escapeHtml(match.country)}</p>
     </header>
     <div class="modal-scoreboard">
       <div class="modal-score-team">
         <span class="modal-team-flag">${escapeHtml(match.teamA.flag)}</span>
         <strong>${teamName(match.teamA)}</strong>
-        <small>Chance titolo ${percent(match.teamA.worldCupProbability)}</small>
+        <small>${t("modal.titleChance", { value: percent(match.teamA.worldCupProbability) })}</small>
       </div>
       <div class="modal-score">
         <strong>${match.goalsA}<span>:</span>${match.goalsB}</strong>
@@ -748,29 +1117,29 @@ function openMatchModal(matchId) {
       <div class="modal-score-team">
         <span class="modal-team-flag">${escapeHtml(match.teamB.flag)}</span>
         <strong>${teamName(match.teamB)}</strong>
-        <small>Chance titolo ${percent(match.teamB.worldCupProbability)}</small>
+        <small>${t("modal.titleChance", { value: percent(match.teamB.worldCupProbability) })}</small>
       </div>
     </div>
     <div class="match-modal-grid">
       <section class="modal-data-card">
-        <span class="modal-card-label">PROBABILITÀ PRE-PARTITA</span>
+        <span class="modal-card-label">${t("modal.preMatch")}</span>
         ${modalProbability(match.teamA.name, match.probabilities.teamA, "team-a")}
-        ${modalProbability("Pareggio nei 90'", match.probabilities.draw, "draw")}
+        ${modalProbability(t("modal.draw90"), match.probabilities.draw, "draw")}
         ${modalProbability(match.teamB.name, match.probabilities.teamB, "team-b")}
       </section>
       <section class="modal-data-card">
-        <span class="modal-card-label">DATI DEL MODELLO</span>
+        <span class="modal-card-label">${t("modal.modelData")}</span>
         <div class="modal-stat-row">
-          <span>Expected goals</span>
+          <span>${t("modal.expectedGoals")}</span>
           <strong>${match.expectedGoals.teamA.toFixed(2)} - ${match.expectedGoals.teamB.toFixed(2)}</strong>
         </div>
         <div class="modal-stat-row">
-          <span>Probabilità base 1X2</span>
+          <span>${t("modal.baseProbability")}</span>
           <strong>${percent(match.baseProbabilities.teamA)} · ${percent(match.baseProbabilities.draw)} · ${percent(match.baseProbabilities.teamB)}</strong>
         </div>
         <div class="modal-stat-row">
-          <span>Vincitore simulato</span>
-          <strong>${escapeHtml(match.winner || "Pareggio")}</strong>
+          <span>${t("modal.simulatedWinner")}</span>
+          <strong>${escapeHtml(match.winner || t("modal.draw"))}</strong>
         </div>
       </section>
     </div>
@@ -783,6 +1152,7 @@ function openMatchModal(matchId) {
 function closeMatchModal() {
   elements.matchModal.classList.add("hidden");
   document.body.classList.remove("modal-open");
+  state.openMatchId = null;
 }
 
 function renderPhaseNav(simulation) {
@@ -790,7 +1160,7 @@ function renderPhaseNav(simulation) {
     .map(
       (phase, index) => `
         <button class="phase-button ${phase.id === state.bracketStart ? "active" : ""}" data-phase="${phase.id}">
-          ${escapeHtml(phase.label)}
+          ${escapeHtml(t(phase.labelKey))}
         </button>
       `,
     )
@@ -840,18 +1210,28 @@ function renderStorylines(simulation) {
   elements.storylineGrid.innerHTML = `
     <article class="storyline-card">
       <span class="storyline-number">${percent(upset.winnerPreMatchProbability)}</span>
-      <h3>La sorpresa del torneo</h3>
-      <p>${escapeHtml(upset.winner)} ha vinto con appena il ${percent(upset.winnerPreMatchProbability)} di probabilità pre-partita. ${escapeHtml(describeMatch(upset))}.</p>
+      <h3>${t("story.upsetTitle")}</h3>
+      <p>${escapeHtml(t("story.upsetText", {
+        winner: upset.winner,
+        probability: percent(upset.winnerPreMatchProbability),
+        match: describeMatch(upset),
+      }))}</p>
     </article>
     <article class="storyline-card">
       <span class="storyline-number">${high.goalsA + high.goalsB}</span>
-      <h3>La partita più spettacolare</h3>
-      <p>${escapeHtml(describeMatch(high))}, giocata a ${escapeHtml(high.venue)}.</p>
+      <h3>${t("story.highTitle")}</h3>
+      <p>${escapeHtml(t("story.highText", {
+        match: describeMatch(high),
+        venue: high.venue,
+      }))}</p>
     </article>
     <article class="storyline-card">
       <span class="storyline-number">100K</span>
-      <h3>Una storia, non un copione</h3>
-      <p>Il prior Monte Carlo pesa il ${Math.round(simulation.model.priorWeight * 100)}%, mentre il risultato viene campionato dalla distribuzione calibrata ${escapeHtml(simulation.model.scoreDistribution)}.</p>
+      <h3>${t("story.modelTitle")}</h3>
+      <p>${escapeHtml(t("story.modelText", {
+        weight: Math.round(simulation.model.priorWeight * 100),
+        distribution: distributionLabel(simulation.model.scoreDistribution),
+      }))}</p>
     </article>
   `;
 }
@@ -919,12 +1299,53 @@ function renderSimulation(simulation) {
   renderBracket(simulation.stages, state.bracketStart);
   renderStorylines(simulation);
   document.getElementById("storyTitle").textContent =
-    `${simulation.summary.champion.name} conquista il mondo.`;
+    t("story.championTitle", { team: simulation.summary.champion.name });
   document.getElementById("championStage").scrollIntoView({
     behavior: "smooth",
     block: "center",
   });
   revealTournament(simulation);
+}
+
+function refreshLanguage() {
+  const activeBracketStart = state.bracketStart;
+  const openMatchId = state.openMatchId;
+  applyStaticTranslations();
+
+  if (state.bootstrap) {
+    renderFavorites(state.bootstrap.favorites);
+    renderAllProbabilities(state.bootstrap.allTeams);
+    const model = state.bootstrap.model;
+    document.getElementById("heroMeta").title = t("model.tooltip", {
+      rho: model.dixonColesRho,
+      distribution: distributionLabel(model.scoreDistribution),
+      weight: Math.round(model.monteCarloPriorWeight * 100),
+    });
+  }
+
+  if (state.simulation) {
+    state.bracketStart = activeBracketStart;
+    renderChampion(state.simulation);
+    renderPhaseNav(state.simulation);
+    renderGroups(state.simulation.groups);
+    renderBracket(state.simulation.stages, activeBracketStart);
+    renderStorylines(state.simulation);
+    document.getElementById("storyTitle").textContent = t(
+      "story.championTitle",
+      { team: state.simulation.summary.champion.name },
+    );
+    elements.bracketGrid
+      .querySelectorAll(".match-card")
+      .forEach((card) => card.classList.add("visible"));
+  }
+
+  if (openMatchId) openMatchModal(openMatchId);
+}
+
+function toggleLanguage() {
+  state.language = state.language === "it" ? "en" : "it";
+  localStorage.setItem("wc26-language", state.language);
+  refreshLanguage();
 }
 
 async function simulateTournament() {
@@ -933,14 +1354,14 @@ async function simulateTournament() {
   elements.simulateButton.disabled = true;
   try {
     const rawSeed = elements.seedInput.value.trim();
-    if (!state.engine) throw new Error("Motore di simulazione non ancora pronto");
+    if (!state.engine) throw new Error(t("error.engineReady"));
     const request = Promise.resolve().then(() =>
       state.engine.simulate(rawSeed ? Number(rawSeed) : undefined),
     );
     const simulation = await runLoadingSequence(request);
     renderSimulation(simulation);
   } catch (error) {
-    showToast(`Simulazione non riuscita: ${error.message}`);
+    showToast(t("error.simulation", { message: error.message }));
   } finally {
     state.loading = false;
     elements.simulateButton.disabled = false;
@@ -948,6 +1369,7 @@ async function simulateTournament() {
 }
 
 elements.simulateButton.addEventListener("click", simulateTournament);
+elements.languageToggle.addEventListener("click", toggleLanguage);
 elements.seedInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") simulateTournament();
 });
@@ -978,4 +1400,5 @@ document.querySelectorAll("[data-scroll]").forEach((button) => {
   });
 });
 
+applyStaticTranslations();
 loadBootstrap();
