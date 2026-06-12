@@ -7,6 +7,17 @@
 
   const UINT32_SCALE = 4294967296;
   const UINT32_MAX = 4294967295;
+  const ANNEX_C_WINNER_GROUPS = "ABDEGIKL";
+  const ANNEX_C_ALLOWED_THIRD_GROUPS = {
+    A: "CEFHI",
+    B: "EFGIJ",
+    D: "BEFIJ",
+    E: "ABCDF",
+    G: "AEHIJ",
+    I: "CDFGH",
+    K: "DEIJL",
+    L: "EHIJK",
+  };
   const STAGE_LABELS = {
     round_of_32: "Round of 32",
     round_of_16: "Round of 16",
@@ -210,47 +221,89 @@
       );
   }
 
-  function assignBestThirds(roundOf32, bestThirds) {
+  function validateAnnexC(annexC) {
+    const entries = Object.entries(annexC || {});
+    if (entries.length !== 495) {
+      throw new Error(
+        engineMessage(
+          `L'Annex C deve contenere 495 combinazioni, trovate ${entries.length}`,
+          `Annex C must contain 495 combinations; found ${entries.length}`,
+        ),
+      );
+    }
+    entries.forEach(([qualifiedGroups, assignments]) => {
+      const distinctQualified = new Set(qualifiedGroups);
+      const distinctAssigned = new Set(assignments);
+      if (
+        !/^[A-L]{8}$/.test(qualifiedGroups) ||
+        !/^[A-L]{8}$/.test(assignments) ||
+        distinctQualified.size !== 8 ||
+        distinctAssigned.size !== 8 ||
+        [...distinctAssigned].sort().join("") !== qualifiedGroups
+      ) {
+        throw new Error(`Invalid Annex C combination: ${qualifiedGroups}`);
+      }
+      [...ANNEX_C_WINNER_GROUPS].forEach((winnerGroup, index) => {
+        if (!ANNEX_C_ALLOWED_THIRD_GROUPS[winnerGroup].includes(assignments[index])) {
+          throw new Error(
+            `Invalid Annex C assignment: 1${winnerGroup}-3${assignments[index]}`,
+          );
+        }
+      });
+    });
+  }
+
+  function assignBestThirds(roundOf32, bestThirds, annexC) {
     const slots = [];
     roundOf32.forEach((match) => {
       ["as", "bs"].forEach((side) => {
         const source = match[side] || "";
         if (source.startsWith("Best Third Group ")) {
+          const otherSide = side === "as" ? "bs" : "as";
+          const winner = /^Winner Group ([A-L])$/.exec(match[otherSide] || "");
+          if (!winner) {
+            throw new Error(`Best-third slot ${match.i} has no group winner`);
+          }
           slots.push({
             matchId: match.i,
             side,
+            winnerGroup: winner[1],
             allowed: source.replace("Best Third Group ", "").split("/"),
           });
         }
       });
     });
     const byGroup = new Map(bestThirds.map((item) => [item.group, item.team]));
-    const solution = new Map();
-
-    function backtrack(position, usedGroups) {
-      if (position === slots.length) return true;
-      const slot = slots[position];
-      const candidates = slot.allowed.filter(
-        (group) => byGroup.has(group) && !usedGroups.has(group),
-      );
-      for (const group of candidates) {
-        solution.set(`${slot.matchId}:${slot.side}`, byGroup.get(group));
-        usedGroups.add(group);
-        if (backtrack(position + 1, usedGroups)) return true;
-        usedGroups.delete(group);
-        solution.delete(`${slot.matchId}:${slot.side}`);
-      }
-      return false;
-    }
-
-    if (!backtrack(0, new Set())) {
+    if (byGroup.size !== 8 || slots.length !== 8) {
       throw new Error(
         engineMessage(
-          "Impossibile assegnare le migliori terze al tabellone",
-          "Unable to assign the best third-placed teams to the bracket",
+          "Servono otto migliori terze e otto slot nel tabellone",
+          "Eight best third-placed teams and eight bracket slots are required",
         ),
       );
     }
+    const qualifiedGroups = [...byGroup.keys()].sort().join("");
+    const assignments = annexC[qualifiedGroups];
+    if (!assignments) {
+      throw new Error(
+        engineMessage(
+          `Combinazione Annex C non trovata: ${qualifiedGroups}`,
+          `Annex C combination not found: ${qualifiedGroups}`,
+        ),
+      );
+    }
+    const solution = new Map();
+
+    slots.forEach((slot) => {
+      const winnerIndex = ANNEX_C_WINNER_GROUPS.indexOf(slot.winnerGroup);
+      const thirdGroup = assignments[winnerIndex];
+      if (!slot.allowed.includes(thirdGroup) || !byGroup.has(thirdGroup)) {
+        throw new Error(
+          `Invalid Annex C slot ${slot.matchId}: 1${slot.winnerGroup}-3${thirdGroup}`,
+        );
+      }
+      solution.set(`${slot.matchId}:${slot.side}`, byGroup.get(thirdGroup));
+    });
     return solution;
   }
 
@@ -270,6 +323,8 @@
       this.knockoutModels = runtimeData.knockouts;
       this.teams = metadata.teams.map(expandTeam);
       this.schedule = metadata.schedule;
+      validateAnnexC(metadata.annexC);
+      this.annexC = metadata.annexC;
       this.teamIndex = new Map(this.teams.map((team, index) => [team.name, index]));
       this.bootstrapPayload = this.buildBootstrap();
     }
@@ -420,7 +475,11 @@
       const roundOf32Schedule = this.schedule.filter(
         (match) => match.s === "round_of_32",
       );
-      const thirdAssignments = assignBestThirds(roundOf32Schedule, bestThirds);
+      const thirdAssignments = assignBestThirds(
+        roundOf32Schedule,
+        bestThirds,
+        this.annexC,
+      );
       const resultsByNumber = new Map();
 
       const resolveSource = (source, matchId, side) => {
