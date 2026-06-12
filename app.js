@@ -9,10 +9,42 @@ const state = {
   openMatchId: null,
 };
 
+function ensureLanguageControls() {
+  let toggle = document.getElementById("languageToggle");
+  let label = document.getElementById("languageToggleLabel");
+  if (toggle && label) return { toggle, label };
+
+  const topbar = document.querySelector(".topbar");
+  const modelLive = document.querySelector(".model-live");
+  if (!topbar) return { toggle: null, label: null };
+
+  let actions = document.querySelector(".topbar-actions");
+  if (!actions) {
+    actions = document.createElement("div");
+    actions.className = "topbar-actions";
+    topbar.appendChild(actions);
+    if (modelLive) actions.appendChild(modelLive);
+  }
+
+  toggle = document.createElement("button");
+  toggle.className = "language-toggle";
+  toggle.id = "languageToggle";
+  toggle.type = "button";
+  toggle.innerHTML = `
+    <span class="language-icon" aria-hidden="true">文</span>
+    <span id="languageToggleLabel">EN</span>
+  `;
+  actions.insertBefore(toggle, actions.firstChild);
+  label = toggle.querySelector("#languageToggleLabel");
+  return { toggle, label };
+}
+
+const languageControls = ensureLanguageControls();
+
 const elements = {
   simulateButton: document.getElementById("simulateButton"),
-  languageToggle: document.getElementById("languageToggle"),
-  languageToggleLabel: document.getElementById("languageToggleLabel"),
+  languageToggle: languageControls.toggle,
+  languageToggleLabel: languageControls.label,
   seedInput: document.getElementById("seedInput"),
   favoritesTrack: document.getElementById("favoritesTrack"),
   teamSearch: document.getElementById("teamSearch"),
@@ -376,9 +408,11 @@ function applyStaticTranslations() {
   document.querySelectorAll("[data-i18n-content]").forEach((node) => {
     node.setAttribute("content", t(node.dataset.i18nContent));
   });
-  elements.languageToggleLabel.textContent =
-    state.language === "it" ? "EN" : "IT";
-  elements.languageToggle.setAttribute("aria-label", t("language.switch"));
+  if (elements.languageToggleLabel) {
+    elements.languageToggleLabel.textContent =
+      state.language === "it" ? "EN" : "IT";
+  }
+  elements.languageToggle?.setAttribute("aria-label", t("language.switch"));
 }
 
 const phaseDetails = [
@@ -1369,7 +1403,7 @@ async function simulateTournament() {
 }
 
 elements.simulateButton.addEventListener("click", simulateTournament);
-elements.languageToggle.addEventListener("click", toggleLanguage);
+elements.languageToggle?.addEventListener("click", toggleLanguage);
 elements.seedInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") simulateTournament();
 });
